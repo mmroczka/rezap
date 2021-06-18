@@ -16,6 +16,7 @@
     "@notionhq/client": "^0.1.9",
     "axios": "^0.21.1",
     "bree": "^6.2.0",
+    "dayjs": "^1.10.5",
     "dotenv": "^10.0.0",
     "simple-node-logger": "^18.12.24"
   },
