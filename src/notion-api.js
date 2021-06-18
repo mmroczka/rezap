@@ -1,4 +1,5 @@
 import { Client } from '@notionhq/client'
+import logger from 'simple-node-logger'
 import * as dotenv from 'dotenv'
 dotenv.config()
 
@@ -9,41 +10,54 @@ export class NotionAPI {
     this.client = new Client({ auth: process.env.NOTION_KEY })
     this.NOTION_RESCUE_TIME_DB_ID =
       process.env.NOTION_RESCUE_TIME_HIGHLIGHTS_DB_ID
-    console.log('client is ', this.client)
-    console.log('DB ID is ', this.NOTION_RESCUE_TIME_DB_ID)
+    this.logger = logger.createSimpleLogger('logs/notion-api.log')
+    this.logger.log('info', 'starting logger')
   }
 
   async retrieveDatabase(databaseId) {
-    const response = await this.client.databases.retrieve({
-      database_id: databaseId,
-    })
-    return response.data
+    try {
+      const response = await this.client.databases.retrieve({
+        database_id: databaseId,
+      })
+    } catch (e) {
+      this.logger.log('error', e)
+      throw new NotionAPIError()
+    }
+    return response
   }
 
   // async createNotionHighlightFromRescueTimeHighlight(highlight) {}
-
-  async createPageInDatabase(databaseId, pageProperties, children) {
+  createNotionPageWithHighlight(highlight) {
     const parent = {
-      database_id: databaseId,
+      database_id: this.NOTION_RESCUE_TIME_DB_ID,
     }
-
     const properties = {
       Description: {
         title: [
           {
             text: {
-              content: 'RescueTime Highlights',
+              content: highlight.description,
             },
           },
         ],
       },
+      'Rescue Time ID': {
+        number: highlight.id,
+      },
+      Date: {
+        date: {
+          start: highlight.created_at,
+        },
+      },
     }
-
     const page = {
       parent: parent,
       properties: properties,
     }
+    return page
+  }
 
+  async createPageInDatabase(page) {
     const response = await this.client.pages.create(page)
     console.log(response)
   }
