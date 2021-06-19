@@ -19,6 +19,7 @@
     "dayjs": "^1.10.5",
     "dotenv": "^10.0.0",
     "googleapis": "39",
+    "mongodb": "^3.6.9",
     "simple-node-logger": "^18.12.24"
   },
   "devDependencies": {
