@@ -26,6 +26,14 @@ export class GoogleCalendarAPI {
     this.logger.log('info', `${args?.jobName}: starting Google Calendar logger`)
   }
 
+  shouldWeSyncEvent(event) {
+    if (event?.summary?.startsWith('.')) {
+      return false
+    } else {
+      return true
+    }
+  }
+
   async getTodaysFilteredCalendarEvents() {
     // Filters out events that start with a dot on the calendar -> ".downtime blocker"
     try {
@@ -43,13 +51,9 @@ export class GoogleCalendarAPI {
         singleEvents: true,
         orderBy: 'startTime',
       })
-      let events = response?.data?.items
-      this.logger.log('info', `${this.jobName} `, events)
-      if (events?.length > 0) {
-        return events.filter((e) => !e?.summary?.startsWith('.'))
-      } else {
-        return []
-      }
+      const events = response?.data?.items
+      let filteredEvents = events.filter((e) => this.shouldWeSyncEvent(e))
+      return filteredEvents
     } catch (error) {
       this.logger.log(
         'error',

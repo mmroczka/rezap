@@ -105,12 +105,12 @@ export class NotionAPI {
         title: [
           {
             text: {
-              content: event?.summary,
+              content: event.summary,
             },
           },
         ],
       },
-      Option: {
+      Priority: {
         select: {
           name: 'Scheduled 🗓',
         },
@@ -127,9 +127,7 @@ export class NotionAPI {
         },
       },
       URL: {
-        text: {
-          content: event.htmlLink,
-        },
+        url: event.htmlLink,
       },
     }
     const page = {
