@@ -20,6 +20,7 @@
     "dotenv": "^10.0.0",
     "googleapis": "39",
     "mongodb": "^3.6.9",
+    "mongoose": "^5.12.14",
     "simple-node-logger": "^18.12.24"
   },
   "devDependencies": {

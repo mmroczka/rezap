@@ -11,7 +11,7 @@ export class NotionAPI {
   constructor(args) {
     this.notion = new Client({ auth: process.env.NOTION_KEY })
     this.logger = logger.createSimpleLogger('logs/notion-api.log')
-    this.logger.log('info', `${args?.jobName}: starting Notion logger`)
+    this.logger.log('info', `${args.jobName}: starting Notion logger`)
   }
 
   async retrieveDatabase(databaseId) {
@@ -40,7 +40,7 @@ export class NotionAPI {
         database_id: NOTION_TASKS_DB_ID,
         filter: queryFilterSelectFilterTypeBased,
       })
-      return matchingSelectResults?.results[0] || undefined
+      return matchingSelectResults.results[0] || undefined
     } catch (error) {}
     this.logger.log('error', `[findGoogleCalendarEventByURL]: ${err}`)
   }
@@ -57,7 +57,7 @@ export class NotionAPI {
         database_id: NOTION_RESCUE_TIME_DB_ID,
         filter: queryFilterSelectFilterTypeBased,
       })
-      return matchingSelectResults?.results[0] || undefined
+      return matchingSelectResults.results[0] || undefined
     } catch (err) {
       this.logger.log('error', `[findHighlightById]: ${err}`)
     }
@@ -65,24 +65,24 @@ export class NotionAPI {
 
   convertRescueTimeHighlightToNotionPage(highlight) {
     const parent = {
-      database_id: NOTION_RESCUE_TIME_DB_ID ?? 'ERROR',
+      database_id: NOTION_RESCUE_TIME_DB_ID,
     }
     const properties = {
       Description: {
         title: [
           {
             text: {
-              content: highlight?.description,
+              content: highlight.description,
             },
           },
         ],
       },
       'Rescue Time ID': {
-        number: highlight?.id,
+        number: highlight.id,
       },
       Date: {
         date: {
-          start: highlight?.created_at,
+          start: highlight.created_at,
         },
       },
     }
@@ -98,7 +98,7 @@ export class NotionAPI {
     const startTime = event.start.dateTime
     const endTime = event.end.dateTime
     const parent = {
-      database_id: NOTION_TASKS_DB_ID ?? 'ERROR',
+      database_id: NOTION_TASKS_DB_ID,
     }
     const properties = {
       'Action Item': {

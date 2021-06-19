@@ -23,11 +23,11 @@ export class GoogleCalendarAPI {
   constructor(args) {
     this.jobName = args.jobName
     this.logger = logger.createSimpleLogger('logs/google-calendar-api.log')
-    this.logger.log('info', `${args?.jobName}: starting Google Calendar logger`)
+    this.logger.log('info', `${args.jobName}: starting Google Calendar logger`)
   }
 
   shouldWeSyncEvent(event) {
-    if (event?.summary?.startsWith('.')) {
+    if (event.summary.startsWith('.')) {
       return false
     } else {
       return true
@@ -51,7 +51,7 @@ export class GoogleCalendarAPI {
         singleEvents: true,
         orderBy: 'startTime',
       })
-      const events = response?.data?.items
+      const events = response.data.items
       let filteredEvents = events.filter((e) => this.shouldWeSyncEvent(e))
       return filteredEvents
     } catch (error) {
