@@ -5,12 +5,13 @@ dotenv.config()
 
 class NotionAPIError extends Error {}
 const NOTION_RESCUE_TIME_DB_ID = process.env.NOTION_RESCUE_TIME_HIGHLIGHTS_DB_ID
+const NOTION_TASKS_DB_ID = process.env.NOTION_TASKS_DB_ID
 
 export class NotionAPI {
-  constructor() {
+  constructor(args) {
     this.notion = new Client({ auth: process.env.NOTION_KEY })
     this.logger = logger.createSimpleLogger('logs/notion-api.log')
-    this.logger.log('info', 'starting Notion logger')
+    this.logger.log('info', `${args?.jobName}: starting Notion logger`)
   }
 
   async retrieveDatabase(databaseId) {
@@ -27,6 +28,23 @@ export class NotionAPI {
     }
   }
 
+  async findGoogleCalendarEventByURL(url) {
+    try {
+      const queryFilterSelectFilterTypeBased = {
+        property: 'URL',
+        text: {
+          contains: url,
+        },
+      }
+      const matchingSelectResults = await this.notion.databases.query({
+        database_id: NOTION_TASKS_DB_ID,
+        filter: queryFilterSelectFilterTypeBased,
+      })
+      return matchingSelectResults?.results[0] || undefined
+    } catch (error) {}
+    this.logger.log('error', `[findGoogleCalendarEventByURL]: ${err}`)
+  }
+
   async findHighlightById(highlightId) {
     try {
       const queryFilterSelectFilterTypeBased = {
@@ -41,7 +59,7 @@ export class NotionAPI {
       })
       return matchingSelectResults?.results[0] || undefined
     } catch (err) {
-      this.logger.log('error', err)
+      this.logger.log('error', `[findHighlightById]: ${err}`)
     }
   }
 
@@ -76,8 +94,55 @@ export class NotionAPI {
     return page
   }
 
+  convertCalendarEventToNotionPage(event) {
+    const startTime = event.start.dateTime
+    const endTime = event.end.dateTime
+    const parent = {
+      database_id: NOTION_TASKS_DB_ID ?? 'ERROR',
+    }
+    const properties = {
+      'Action Item': {
+        title: [
+          {
+            text: {
+              content: event?.summary,
+            },
+          },
+        ],
+      },
+      Option: {
+        select: {
+          name: 'Scheduled 🗓',
+        },
+      },
+      Status: {
+        select: {
+          name: 'Active',
+        },
+      },
+      'Do Date': {
+        date: {
+          start: startTime,
+          end: endTime,
+        },
+      },
+      URL: {
+        text: {
+          content: event.htmlLink,
+        },
+      },
+    }
+    const page = {
+      parent: parent,
+      properties: properties,
+    }
+    this.logger.log('info', 'successfully converted highlight to Notion page')
+    return page
+  }
+
   async createPageInDatabase(page) {
     try {
+      this.logger.log('info', 'creating page in notion...')
       const response = await this.notion.pages.create(page)
       this.logger.log('info', 'created page in notion successfully')
       if (!response) {
