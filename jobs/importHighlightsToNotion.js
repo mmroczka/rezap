@@ -3,7 +3,7 @@ import { NotionAPI } from '../APIs/notion-api.js'
 import { RescueTimeAPI } from '../APIs/rescue-time-api.js'
 import logger from 'simple-node-logger'
 dotenv.config()
-const options = { jobName: 'importHighlightsToNotion' }
+const options = { jobName: '[[Import Highlights Into Notion]]' }
 
 const notionAPI = new NotionAPI(options)
 const rescueTimeAPI = new RescueTimeAPI(options)
