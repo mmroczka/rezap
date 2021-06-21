@@ -1,0 +1,30 @@
+{
+  "compilerOptions":{
+    // "strict": true,
+    // "strictNullChecks": true,
+    // "allowJs": true,
+    // "experimentalDecorators": true,
+    // "outDir": "dist",
+    // "noImplicitAny": false,
+    // "allowSyntheticDefaultImports": true,
+    // "emitDecoratorMetadata": true,
+    // "esModuleInterop": true,
+    // "moduleResolution": "node",
+    // "module": "commonjs",
+    // "target": "ES6",
+    // "skipLibCheck": true,
+    // "types": []
+    "target": "es6",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "lib": ["es2016", "esnext", "dom"],
+    "outDir": "dist",
+    // "strict": true,
+    // "strictNullChecks": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    // "declaration": true,
+  }
+}

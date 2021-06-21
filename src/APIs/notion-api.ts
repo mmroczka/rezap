@@ -1,17 +1,15 @@
 import { Client } from '@notionhq/client'
 import logger from 'simple-node-logger'
-import * as dotenv from 'dotenv'
-dotenv.config()
+import constants from '../constants.config'
 
 class NotionAPIError extends Error {}
-const NOTION_RESCUE_TIME_DB_ID = process.env.NOTION_RESCUE_TIME_HIGHLIGHTS_DB_ID
-const NOTION_TASKS_DB_ID = process.env.NOTION_TASKS_DB_ID
 
 export class NotionAPI {
-  constructor(args) {
-    this.notion = new Client({ auth: process.env.NOTION_KEY })
-    this.logger = logger.createSimpleLogger('logs/notion-api.log')
-    this.logger.log('info', `${args.jobName}: starting Notion logger`)
+  protected notion = new Client({ auth: process.env.NOTION_KEY })
+  protected logger = logger.createSimpleLogger('logs/notion-api.log')
+
+  constructor(public jobName: string = 'No Job Name') {
+    this.logger.log('info', `${jobName}: starting Notion logger`)
   }
 
   async retrieveDatabase(databaseId) {
@@ -37,12 +35,13 @@ export class NotionAPI {
         },
       }
       const matchingSelectResults = await this.notion.databases.query({
-        database_id: NOTION_TASKS_DB_ID,
+        database_id: constants.NOTION_TASKS_DB_ID,
         filter: queryFilterSelectFilterTypeBased,
       })
       return matchingSelectResults.results[0] || undefined
-    } catch (error) {}
-    this.logger.log('error', `[findGoogleCalendarEventByURL]: ${err}`)
+    } catch (error) {
+      this.logger.log('error', `[findGoogleCalendarEventByURL]: ${error}`)
+    }
   }
 
   async findHighlightById(highlightId) {
@@ -54,7 +53,7 @@ export class NotionAPI {
         },
       }
       const matchingSelectResults = await this.notion.databases.query({
-        database_id: NOTION_RESCUE_TIME_DB_ID,
+        database_id: constants.NOTION_RESCUE_TIME_HIGHLIGHTS_DB_ID,
         filter: queryFilterSelectFilterTypeBased,
       })
       return matchingSelectResults.results[0] || undefined
@@ -65,7 +64,7 @@ export class NotionAPI {
 
   convertRescueTimeHighlightToNotionPage(highlight) {
     const parent = {
-      database_id: NOTION_RESCUE_TIME_DB_ID,
+      database_id: constants.NOTION_RESCUE_TIME_HIGHLIGHTS_DB_ID,
     }
     const properties = {
       Description: {
@@ -98,7 +97,7 @@ export class NotionAPI {
     const startTime = event.start.dateTime
     const endTime = event.end.dateTime
     const parent = {
-      database_id: NOTION_TASKS_DB_ID,
+      database_id: constants.NOTION_TASKS_DB_ID,
     }
     const properties = {
       'Action Item': {

@@ -1,0 +1,10 @@
+{
+  "parserOptions": {
+    "sourceType": "module"
+  },
+  "import/resolver": {
+    "typescript": {
+      "alwaysTryTypes": true
+    }
+  }
+}

@@ -6,12 +6,12 @@ dotenv.config()
 class RescueTimeAPIError extends Error {}
 
 export class RescueTimeAPI {
-  constructor(args) {
-    this.RESCUE_TIME_BASE_URL = 'https://www.rescuetime.com/anapi'
-    this.RESCUE_TIME_HIGHLIGHTS_URL = '/highlights_feed'
-    this.logger = logger.createSimpleLogger('logs/rescue-time-api.log')
-    this.logger.log('info')
-    this.logger.log('info', `${args?.jobName}: starting Rescue Time logger`)
+  protected logger = logger.createSimpleLogger('logs/rescue-time-api.log')
+  protected RESCUE_TIME_BASE_URL = 'https://www.rescuetime.com/anapi'
+  protected RESCUE_TIME_HIGHLIGHTS_URL = '/highlights_feed'
+
+  constructor(public jobName: string = 'No Job Name') {
+    this.logger.log('info', `${jobName}: starting Notion logger`)
   }
 
   async getRescueTimeHighlights() {

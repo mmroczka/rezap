@@ -2,7 +2,7 @@ import * as dotenv from 'dotenv'
 import google_log from 'simple-node-logger'
 import { google } from 'googleapis'
 import logger from 'simple-node-logger'
-import dayjs from 'dayjs'
+import * as dayjs from 'dayjs'
 dotenv.config()
 
 const oAuth2Client = new google.auth.OAuth2(
@@ -20,10 +20,11 @@ google.options({
 class GoogleCalendarAPIError extends Error {}
 
 export class GoogleCalendarAPI {
-  constructor(args) {
-    this.jobName = args.jobName
-    this.logger = logger.createSimpleLogger('logs/google-calendar-api.log')
-    this.logger.log('info', `${args.jobName}: starting Google Calendar logger`)
+  protected logger = logger.createSimpleLogger('logs/google-calendar-api.log')
+  protected google = google
+
+  constructor(public jobName: string = 'No Job Name') {
+    this.logger.log('info', `${jobName}: starting Google Calendar logger`)
   }
 
   shouldWeSyncEvent(event) {
@@ -40,9 +41,10 @@ export class GoogleCalendarAPI {
       // get the access token
       const accessToken = await oAuth2Client.getAccessToken()
 
-      const calendar = google.calendar({ version: 'v3', oAuth2Client })
-      const dayStart = dayjs().startOf('day').toISOString()
-      const dayEnd = dayjs().endOf('day').toISOString()
+      // const calendar = google.calendar({ version: 'v3', oAuth2Client })
+      const calendar = google.calendar({ version: 'v3' })
+      const dayStart = dayjs.default().startOf('day').toISOString()
+      const dayEnd = dayjs.default().endOf('day').toISOString()
       const response = await calendar.events.list({
         calendarId: 'primary',
         timeMin: dayStart,
