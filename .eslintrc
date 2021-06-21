@@ -2,9 +2,11 @@
   "parserOptions": {
     "sourceType": "module"
   },
-  "import/resolver": {
-    "typescript": {
-      "alwaysTryTypes": true
+  "rules": {
+    "import/resolver": {
+      "typescript": {
+        "alwaysTryTypes": true
+      }
     }
   }
 }
