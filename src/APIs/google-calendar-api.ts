@@ -1,8 +1,9 @@
 import * as dotenv from 'dotenv'
 import google_log from 'simple-node-logger'
 import { google } from 'googleapis'
-import logger from 'simple-node-logger'
+// import logger from 'simple-node-logger'
 import * as dayjs from 'dayjs'
+import { makeConsoleLogger } from '@notionhq/client/build/src/logging'
 dotenv.config()
 
 const oAuth2Client = new google.auth.OAuth2(
@@ -20,14 +21,16 @@ google.options({
 class GoogleCalendarAPIError extends Error {}
 
 export class GoogleCalendarAPI {
-  protected logger = logger.createSimpleLogger('logs/google-calendar-api.log')
+  // protected logger
   protected google = google
 
   constructor(public jobName: string = 'No Job Name') {
-    this.logger.log('info', `${jobName}: starting Google Calendar logger`)
+    // console.log(this)
+    // const logger = logger.createSimpleLogger('logs/google-calendar-api.log')
+    console.log('info', `${jobName}: starting Google Calendar logger`)
   }
 
-  shouldWeSyncEvent(event) {
+  shouldWeSyncEvent(event: IGoogleCalendarEvent) {
     if (event.summary.startsWith('.')) {
       return false
     } else {
@@ -53,15 +56,15 @@ export class GoogleCalendarAPI {
         singleEvents: true,
         orderBy: 'startTime',
       })
-      const events = response.data.items
+      const events: IGoogleCalendarEvent = response.data.items
       let filteredEvents = events.filter((e) => this.shouldWeSyncEvent(e))
       return filteredEvents
     } catch (error) {
-      this.logger.log(
-        'error',
-        `${this.jobName} GoogleCalendarAPI [getTodaysCalendarEvents] error: ` +
-          error
-      )
+      // this.logger.log(
+      //   'error',
+      //   `${this.jobName} GoogleCalendarAPI [getTodaysCalendarEvents] error: ` +
+      //     error
+      // )
       return []
     }
   }

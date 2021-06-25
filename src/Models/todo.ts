@@ -1,8 +1,12 @@
-// import {mongoose} from mongoose
+import { Schema, model } from 'mongoose'
 
-// export const todosSchema = new mongoose.Schema({
-//   description: String,
-//   complete: Boolean
-// })
+export const todosSchema = new Schema({
+  description: String,
+  complete: Boolean,
+})
 
-// module.exports.Todos = mongoose.model('Todos', todosSchema)
+// module.exports.Todos = model('Todos', todosSchema)
+
+const Todos = model('Todos', todosSchema)
+
+export { Todos }

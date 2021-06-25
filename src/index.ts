@@ -5,31 +5,34 @@ import * as path from 'path'
 import { google } from 'googleapis'
 import * as dayjs from 'dayjs'
 import { Schema, model, connect, connection } from 'mongoose'
+import { Todos } from './Models/todo'
 
 dotenv.config()
 
 import { GoogleCalendarAPI } from './APIs/google-calendar-api.js'
 import { NotionAPI } from './APIs/notion-api.js'
 
-const main = async () => {
-  console.log('test')
-  // const calendarAPI = new GoogleCalendarAPI('main_test')
-  // const notionAPI = new NotionAPI('main_test')
-  // const events = await calendarAPI.getTodaysFilteredCalendarEvents()
-  // for (const event of events) {
-  //   console.log(event.summary)
-  // }
-}
-
 // connect('mongodb://mongodb:27017/test', { useNewUrlParser: true })
 
-// const db = connection
-// db.on('error', console.error.bind(console, 'CONNECTION ERROR'))
-// db.once('open', function () {
-//   // we're connected!
-//   console.log('Connected!')
-// })
-console.log('test')
+const main = async () => {
+  // console.log('testzing')
+  // const db = connection
+  // db.on('error', console.error.bind(console, 'CONNECTION ERROR'))
+  // db.once('open', function () {
+  // we're connected!
+  // console.log('Connected!')
+  // })
+  // const todos = await Todos.find()
+  const calendarAPI = new GoogleCalendarAPI('main_test')
+  // const notionAPI = new NotionAPI('main_test')
+  const events: IGoogleCalendarEvent =
+    await calendarAPI.getTodaysFilteredCalendarEvents()
+  for (const event of events) {
+    console.log(event.summary)
+    console.log(event)
+  }
+}
+
 main()
 
 // for (const event of events) {

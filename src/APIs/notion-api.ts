@@ -6,9 +6,10 @@ class NotionAPIError extends Error {}
 
 export class NotionAPI {
   protected notion = new Client({ auth: process.env.NOTION_KEY })
-  protected logger = logger.createSimpleLogger('logs/notion-api.log')
 
   constructor(public jobName: string = 'No Job Name') {
+    console.log('my log', this.logger)
+    const logger = logger?.createSimpleLogger('logs/notion-api.log')
     this.logger.log('info', `${jobName}: starting Notion logger`)
   }
 
@@ -26,7 +27,7 @@ export class NotionAPI {
     }
   }
 
-  async findGoogleCalendarEventByURL(url) {
+  async findGoogleCalendarEventByURL(url: any) {
     try {
       const queryFilterSelectFilterTypeBased = {
         property: 'URL',
