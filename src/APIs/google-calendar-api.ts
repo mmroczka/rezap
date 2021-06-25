@@ -3,7 +3,8 @@ import google_log from 'simple-node-logger'
 import { google } from 'googleapis'
 // import logger from 'simple-node-logger'
 import * as dayjs from 'dayjs'
-import { makeConsoleLogger } from '@notionhq/client/build/src/logging'
+import { CalendarEvent, calendarEventSchema } from '../Models/calendarEvent'
+import { connect, connection, model } from 'mongoose'
 dotenv.config()
 
 const oAuth2Client = new google.auth.OAuth2(
@@ -30,12 +31,56 @@ export class GoogleCalendarAPI {
     console.log('info', `${jobName}: starting Google Calendar logger`)
   }
 
-  shouldWeSyncEvent(event: IGoogleCalendarEvent) {
+  shouldWeSyncEvent(event) {
     if (event.summary.startsWith('.')) {
       return false
     } else {
       return true
     }
+  }
+
+  convertsEventToModels(events: any) {
+    connect('mongodb://mongodb:27017/test', { useNewUrlParser: true })
+    console.log('testzing')
+    const db = connection
+    db.on('error', console.error.bind(console, 'CONNECTION ERROR'))
+    // db.once('open', function () {
+    //   console.log('Connected!')
+    // })
+    
+    db.once('open', function() {
+      console.log("Connection Successful!");
+       
+      for (const e of events) {
+        // a document instance
+        const event = new CalendarEvent({
+          id: e.id,
+          status: e.status,
+          htmlLink: e.htmlLink,
+          created: e.created,
+          updated: e.updated,
+          summary: e.summary,
+          start: {
+            dateTime: e.start.dateTime,
+          },
+          end: {
+            dateTime: e.end.dateTime,
+          },
+          sequence: e.sequence,
+          reminders: {
+            useDefaults: e.reminders.useDefaults
+          }
+        });
+
+        // save model to database
+        event.save(function (err, event) {
+          if (err) return console.error(err);
+          console.log(event.summary + " saved to bookstore collection.");
+          console.log(event);
+        });
+       
+      }
+    });
   }
 
   async getTodaysFilteredCalendarEvents() {
@@ -56,15 +101,15 @@ export class GoogleCalendarAPI {
         singleEvents: true,
         orderBy: 'startTime',
       })
-      const events: IGoogleCalendarEvent = response.data.items
-      let filteredEvents = events.filter((e) => this.shouldWeSyncEvent(e))
+      const events = response.data.items
+      let filteredEvents: any[] = []
+      if (events){
+        filteredEvents = events.filter((e) => this.shouldWeSyncEvent(e))
+      }
+      const eventModelList = this.convertEventsToModels(events)
       return filteredEvents
     } catch (error) {
-      // this.logger.log(
-      //   'error',
-      //   `${this.jobName} GoogleCalendarAPI [getTodaysCalendarEvents] error: ` +
-      //     error
-      // )
+        console.log(`${this.jobName} GoogleCalendarAPI [getTodaysCalendarEvents] error: ` + error)
       return []
     }
   }

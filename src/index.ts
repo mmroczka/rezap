@@ -25,8 +25,7 @@ const main = async () => {
   // const todos = await Todos.find()
   const calendarAPI = new GoogleCalendarAPI('main_test')
   // const notionAPI = new NotionAPI('main_test')
-  const events: IGoogleCalendarEvent =
-    await calendarAPI.getTodaysFilteredCalendarEvents()
+  const events = await calendarAPI.getTodaysFilteredCalendarEvents()
   for (const event of events) {
     console.log(event.summary)
     console.log(event)

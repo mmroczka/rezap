@@ -13,7 +13,7 @@
     "dev": "babel-node -x \".ts,.tsx,.js\" src/index.ts",
     "build": "babel -x \".ts,.tsx,.js\" ./src --out-dir ./dist",
     "typecheck": "tsc",
-    "install": "npm run build"
+    "install": "yarn build"
   },
   "dependencies": {
     "@notionhq/client": "^0.1.9",
