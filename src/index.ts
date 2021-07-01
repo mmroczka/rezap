@@ -15,20 +15,21 @@ import { NotionAPI } from './APIs/notion-api.js'
 // connect('mongodb://mongodb:27017/test', { useNewUrlParser: true })
 
 const main = async () => {
-  // console.log('testzing')
-  // const db = connection
-  // db.on('error', console.error.bind(console, 'CONNECTION ERROR'))
-  // db.once('open', function () {
-  // we're connected!
-  // console.log('Connected!')
-  // })
   // const todos = await Todos.find()
   const calendarAPI = new GoogleCalendarAPI('main_test')
-  // const notionAPI = new NotionAPI('main_test')
-  const events = await calendarAPI.getTodaysFilteredCalendarEvents()
-  for (const event of events) {
-    console.log(event.summary)
-    console.log(event)
+  const notionAPI = new NotionAPI('main_test')
+  // const events = await calendarAPI.getTodaysFilteredCalendarEvents()
+  const notionScheduledTasks = await notionAPI.findAllNotionScheduledEvents()
+  // for (const event of events) {
+  //   console.log(event.summary)
+  //   console.log(event)
+  // }
+  if (notionScheduledTasks) {
+    // for (const task of notionScheduledTasks) {
+    console.log(JSON.stringify(notionScheduledTasks))
+    // const actionItem = task.properties['Action Item']
+    // console.log(actionItem?.title[0].plain_text)
+    // }
   }
 }
 

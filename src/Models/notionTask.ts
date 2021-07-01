@@ -1,6 +1,6 @@
 import { Schema, model } from 'mongoose'
 
-export const calendarEventSchema = new Schema({
+export const notionTaskSchema = new Schema({
   id: String,
   status: String,
   htmlLink: String,
@@ -19,6 +19,6 @@ export const calendarEventSchema = new Schema({
   },
 })
 
-const CalendarEvent = model('CalendarEvent', calendarEventSchema)
+const NotionTask = model('NotionTask', notionTaskSchema)
 
-export { CalendarEvent }
+export { NotionTask }

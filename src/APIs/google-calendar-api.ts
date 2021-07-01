@@ -31,7 +31,7 @@ export class GoogleCalendarAPI {
     console.log('info', `${jobName}: starting Google Calendar logger`)
   }
 
-  shouldWeSyncEvent(event) {
+  shouldWeSyncEvent(event: any) {
     if (event.summary.startsWith('.')) {
       return false
     } else {
@@ -39,18 +39,16 @@ export class GoogleCalendarAPI {
     }
   }
 
-  convertsEventToModels(events: any) {
+  convertEventsToModels(events: any) {
     connect('mongodb://mongodb:27017/test', { useNewUrlParser: true })
-    console.log('testzing')
+    console.log('======== TEST ========')
     const db = connection
     db.on('error', console.error.bind(console, 'CONNECTION ERROR'))
-    // db.once('open', function () {
-    //   console.log('Connected!')
-    // })
-    
-    db.once('open', function() {
-      console.log("Connection Successful!");
-       
+
+    let eventList: any = []
+    db.once('open', function () {
+      console.log('Connection Successful!')
+
       for (const e of events) {
         // a document instance
         const event = new CalendarEvent({
@@ -68,19 +66,20 @@ export class GoogleCalendarAPI {
           },
           sequence: e.sequence,
           reminders: {
-            useDefaults: e.reminders.useDefaults
-          }
-        });
+            useDefaults: e.reminders.useDefaults,
+          },
+        })
 
         // save model to database
-        event.save(function (err, event) {
-          if (err) return console.error(err);
-          console.log(event.summary + " saved to bookstore collection.");
-          console.log(event);
-        });
-       
+        event.save((err: any, event: any) => {
+          if (err) return console.error(err)
+          console.log(event.summary + ' saved to bookstore collection.')
+          console.log(event)
+        })
+        eventList.push(event)
       }
-    });
+    })
+    return eventList
   }
 
   async getTodaysFilteredCalendarEvents() {
@@ -103,13 +102,16 @@ export class GoogleCalendarAPI {
       })
       const events = response.data.items
       let filteredEvents: any[] = []
-      if (events){
+      if (events) {
         filteredEvents = events.filter((e) => this.shouldWeSyncEvent(e))
       }
       const eventModelList = this.convertEventsToModels(events)
-      return filteredEvents
+      return eventModelList
     } catch (error) {
-        console.log(`${this.jobName} GoogleCalendarAPI [getTodaysCalendarEvents] error: ` + error)
+      console.log(
+        `${this.jobName} GoogleCalendarAPI [getTodaysCalendarEvents] error: ` +
+          error
+      )
       return []
     }
   }
