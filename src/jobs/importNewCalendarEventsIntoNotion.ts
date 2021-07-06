@@ -3,7 +3,6 @@ import main_log from 'simple-node-logger'
 import * as path from 'path'
 import Bree from 'bree'
 import { google } from 'googleapis'
-import * as dayjs from 'dayjs'
 dotenv.config()
 const jobName: string = '[[Import New Calendar Events Into Notion]]'
 

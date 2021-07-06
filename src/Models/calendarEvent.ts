@@ -1,21 +1,45 @@
 import { Schema, model } from 'mongoose'
 
 export const calendarEventSchema = new Schema({
-  id: String,
-  status: String,
-  htmlLink: String,
-  created: String,
-  updated: String,
-  summary: String,
+  id: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  status: {
+    type: String,
+    required: true,
+  },
+  htmlLink: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  created: {
+    type: String,
+    required: true,
+  },
+  updated: {
+    type: String,
+    required: true,
+  },
+  summary: {
+    type: String,
+    required: true,
+  },
   start: {
-    dateTime: String,
+    dateTime: {
+      type: String,
+      required: true,
+    },
   },
   end: {
-    dateTime: String,
+    dateTime: {
+      type: String,
+    },
   },
-  sequence: Number,
-  reminders: {
-    useDefaults: Boolean,
+  sequence: {
+    type: Number,
   },
 })
 

@@ -1,22 +1,51 @@
 import { Schema, model } from 'mongoose'
 
 export const rezapSchema = new Schema({
-  taskName: String,
-  googleCalID: String,
-  notionPageID: String,
-  lastRezapUpdate: Date,
-  priority: String,
-  done: Boolean,
-  doDate: {
+  taskName: {
+    type: String,
+    required: true,
+  },
+  googleCalID: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  notionPageID: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  lastRezapUpdate: {
+    type: Date,
+    required: true,
+  },
+  priority: {
+    type: String,
+    required: true,
+  },
+  status: {
+    type: String,
+    required: true,
+  },
+  done: {
+    type: Boolean,
+    required: true,
+  },
+  url: {
+    type: String,
+    required: true,
+  },
+  start: {
+    startTime: {
+      type: Date,
+      required: true,
+    },
+    endTime: Date,
+  },
+  end: {
     startTime: Date,
     endTime: Date,
   },
-  dueDate: {
-    startTime: Date,
-    endTime: Date,
-  },
-  status: String,
-  url: String,
 })
 
 const RezapCalendarTask = model('RezapCalendarTask', rezapSchema)

@@ -1,12 +1,12 @@
-import { rezapSchema } from './../Models/rezapItem';
+import { rezapSchema } from './../Models/rezapItem'
 import * as dotenv from 'dotenv'
 import google_log from 'simple-node-logger'
 import { google } from 'googleapis'
 // import logger from 'simple-node-logger'
-import * as dayjs from 'dayjs'
 import { CalendarEvent, calendarEventSchema } from '../Models/calendarEvent'
 import { RezapCalendarTask } from '../Models/rezapItem'
 import { connect, connection, model, Mongoose } from 'mongoose'
+import * as dayjs from 'dayjs'
 dotenv.config()
 
 const oAuth2Client = new google.auth.OAuth2(
@@ -42,26 +42,18 @@ export class GoogleCalendarAPI {
   }
 
   convertEventToModel(event: any, notionTask: any) {
-    console.log('received event: ', event)
-    console.log('received task: ', notionTask)
     return new RezapCalendarTask({
       taskName: event.summary,
       googleCalID: event.id,
-      notionTaskID: notionTask.id,
-      lastRezapUpdate: new Date().toISOString(),
-      status: notionTask.status,
-      htmlLink: event.htmlLink,
-      created: event.created,
-      updated: event.updated,
+      notionPageID: notionTask.id,
+      lastRezapUpdate: dayjs.default().format(),
+      priority: notionTask?.properties['Priority']?.select['name'],
+      status: notionTask?.properties['Status']?.select['name'],
+      done: notionTask?.properties['Done']?.checkbox,
+      url: event.htmlLink,
       start: {
-        dateTime: event.start.dateTime,
-      },
-      end: {
-        dateTime: event.end.dateTime,
-      },
-      sequence: event.sequence,
-      reminders: {
-        useDefaults: event.reminders.useDefaults,
+        startTime: event.start.dateTime,
+        endTime: event.end.dateTime,
       },
     })
   }
@@ -113,9 +105,6 @@ export class GoogleCalendarAPI {
         filteredEvents = events.filter(
           (e) => e?.summary && !e.summary.startsWith('.')
         )
-        // filteredEvents = filteredEvents?.map((event) =>
-        //   this.convertEventToModel(event)
-        // )
       }
       // const eventModelList = this.convertEventsToModels(events)
       return filteredEvents
@@ -128,80 +117,80 @@ export class GoogleCalendarAPI {
     }
   }
 
-  async getEventChangesFromNow() {
-    try {
-      // const calendar = google.calendar({ version: 'v3', oAuth2Client })
-      connect('mongodb://mongodb:27017/test', {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      })
-      console.log('Connected to Database!')
-      const db = connection
-      db.on('error', console.error.bind(console, 'CONNECTION ERROR'))
-      const calendar = google.calendar({ version: 'v3' })
-      const dayStart = dayjs.default().startOf('day').toISOString()
-      const twentyDaysFromNow = dayjs
-        .default()
-        .add(20, 'days')
-        .endOf('day')
-        .toISOString()
-      const response = await calendar.events.list({
-        calendarId: 'primary',
-        timeMin: dayStart,
-        timeMax: twentyDaysFromNow,
-        maxResults: 2,
-        singleEvents: true,
-        orderBy: 'startTime',
-      })
-      const events = response.data.items
-      let filteredEvents: any[] = []
-      if (events) {
-        filteredEvents = events.filter(
-          (e) => e?.summary && !e.summary.startsWith('.')
-        )
-        filteredEvents = filteredEvents?.map((event) =>
-          this.convertEventToModel(event)
-        )
+  // async getEventChangesFromNow() {
+  //   try {
+  //     // const calendar = google.calendar({ version: 'v3', oAuth2Client })
+  //     connect('mongodb://mongodb:27017/test', {
+  //       useNewUrlParser: true,
+  //       useUnifiedTopology: true,
+  //     })
+  //     console.log('Connected to Database!')
+  //     const db = connection
+  //     db.on('error', console.error.bind(console, 'CONNECTION ERROR'))
+  //     const calendar = google.calendar({ version: 'v3' })
+  //     const dayStart = dayjs.default().startOf('day').toISOString()
+  //     const twentyDaysFromNow =dayjs
+  //       .default()
+  //       .add(20, 'days')
+  //       .endOf('day')
+  //       .toISOString()
+  //     const response = await calendar.events.list({
+  //       calendarId: 'primary',
+  //       timeMin: dayStart,
+  //       timeMax: twentyDaysFromNow,
+  //       maxResults: 2,
+  //       singleEvents: true,
+  //       orderBy: 'startTime',
+  //     })
+  //     const events = response.data.items
+  //     let filteredEvents: any[] = []
+  //     if (events) {
+  //       filteredEvents = events.filter(
+  //         (e) => e?.summary && !e.summary.startsWith('.')
+  //       )
+  //       filteredEvents = filteredEvents?.map((event) =>
+  //         this.convertEventToModel(event)
+  //       )
 
-        db.once('open', async function () {
-          console.log('Connection Successful!')
-        })
+  //       db.once('open', async function () {
+  //         console.log('Connection Successful!')
+  //       })
 
-        const dbEvents: IGoogleCalendarEvent[] = await CalendarEvent.find()
-        console.log('DB EVENTS', dbEvents)
-        for (const event of filteredEvents) {
-          // it's already in the DB
-          const calendarEvent = dbEvents.find(
-            (e) => e.id === '42aqqflvvs7gtkhltqimir91k4'
-          )
-          console.log('calendarEvent found? ', calendarEvent)
-          if (calendarEvent) {
-            // is the converted object different from the new object?
-            console.log('found the event!')
-          } else {
-            // it isn't in the DB, so add it
-            const eventAsModel = this.convertEventToModel(event)
-            eventAsModel.save(function (err: any, event: any) {
-              if (err) return console.error(err)
-              console.log(
-                event?.summary +
-                  ' saved newly found CalendarEvent to collection.'
-              )
-            })
-            console.log('event not found in the filteredEvents')
-          }
-        }
-      }
-      // const eventModelList = this.convertEventsToModels(events)
-      return filteredEvents
-    } catch (error) {
-      console.log(
-        `${this.jobName} GoogleCalendarAPI [getTodaysCalendarEvents] error: ` +
-          error
-      )
-      return []
-    }
-  }
+  //       const dbEvents: IGoogleCalendarEvent[] = await CalendarEvent.find()
+  //       console.log('DB EVENTS', dbEvents)
+  //       for (const event of filteredEvents) {
+  //         // it's already in the DB
+  //         const calendarEvent = dbEvents.find(
+  //           (e) => e.id === '42aqqflvvs7gtkhltqimir91k4'
+  //         )
+  //         console.log('calendarEvent found? ', calendarEvent)
+  //         if (calendarEvent) {
+  //           // is the converted object different from the new object?
+  //           console.log('found the event!')
+  //         } else {
+  //           // it isn't in the DB, so add it
+  //           const eventAsModel = this.convertEventToModel(event)
+  //           eventAsModel.save(function (err: any, event: any) {
+  //             if (err) return console.error(err)
+  //             console.log(
+  //               event?.summary +
+  //                 ' saved newly found CalendarEvent to collection.'
+  //             )
+  //           })
+  //           console.log('event not found in the filteredEvents')
+  //         }
+  //       }
+  //     }
+  //     // const eventModelList = this.convertEventsToModels(events)
+  //     return filteredEvents
+  //   } catch (error) {
+  //     console.log(
+  //       `${this.jobName} GoogleCalendarAPI [getTodaysCalendarEvents] error: ` +
+  //         error
+  //     )
+  //     return []
+  //   }
+  // }
 
   async getTodaysFilteredCalendarEvents() {
     // Filters out events that start with a dot on the calendar -> ".downtime blocker"
@@ -211,8 +200,8 @@ export class GoogleCalendarAPI {
 
       // const calendar = google.calendar({ version: 'v3', oAuth2Client })
       const calendar = google.calendar({ version: 'v3' })
-      const dayStart = dayjs.default().startOf('day').toISOString()
-      const dayEnd = dayjs.default().endOf('day').toISOString()
+      const dayStart = daysjs.default().startOf('day').toISOString()
+      const dayEnd = daysjs.default().endOf('day').toISOString()
       const response = await calendar.events.list({
         calendarId: 'primary',
         timeMin: dayStart,

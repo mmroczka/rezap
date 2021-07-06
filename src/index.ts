@@ -1,44 +1,70 @@
 import * as path from 'path'
 // import Bree from 'bree'
 import { google } from 'googleapis'
-import * as dayjs from 'dayjs'
-import { Schema, model, connect, connection } from 'mongoose'
+import { connect, connection } from 'mongoose'
 import { RezapCalendarTask } from './Models/rezapItem'
-// dotenv.config()
-
 import { GoogleCalendarAPI } from './APIs/google-calendar-api.js'
 import { NotionAPI } from './APIs/notion-api.js'
-import { CalendarEvent } from './Models/calendarEvent'
+
+const setupDB = async () => {
+  let db = connection
+  db.on('error', console.error.bind(console, 'CONNECTION ERROR'))
+  console.log('MongoDB connected? ', connection.readyState === 1)
+  await connect('mongodb://localhost:27017/test', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  const rezap = db.collection('rezapcalendartasks')
+  return {
+    rezap,
+    close() {
+      return db.close()
+    },
+  }
+}
 
 const main = async () => {
-
   const notionAPI = new NotionAPI('main_test')
   const calendarAPI = new GoogleCalendarAPI('main_test')
-  const events = await calendarAPI.getNextTwoWeeksOfFilteredEvents()
+  const mongoDB = await setupDB()
+  try {
+    const events = await calendarAPI.getNextTwoWeeksOfFilteredEvents()
+    // const e = await CalendarEvent.create(events[1])
+    for (const event of events.slice(0, 2)) {
+      console.log(`checking DB for ID: ${event.id} -> ${event.summary}`)
+      const calendarEvent = await RezapCalendarTask.findOne({
+        googleCalID: event.id,
+      })
+      if (calendarEvent) {
+        // it's already in the DB
+        console.log('found the event! in the DB so no update needed!')
+      } else {
+        // it isn't in the DB, so add it
+        // convert event to Notion Page format
+        console.log('NOT FOUND')
+        const convertedEvent = notionAPI.convertCalendarEventToNotionPage(event)
+        // post page to notion and catch the returned object with ID (we'll need that later)
+        const notionTask = await notionAPI.addPageInDatabase(convertedEvent)
 
-  for (const event of events) {
-    const calendarEvent = await CalendarEvent.find({ googleCalID: { $eq: event.id } })
-    if (calendarEvent) {
-      // it's already in the DB
-      console.log('found the event! in the DB so no update needed!')
-    } else {
-      // it isn't in the DB, so add it
-      // convert event to Notion Page format
-      const convertedEvent = notionAPI.convertCalendarEventToNotionPage(event)
-      // post page to notion and catch the returned object with ID (we'll need that later)
-      const notionTask = await notionAPI.addPageInDatabase(convertedEvent)
+        // using event and notion page, create hybrid DB model interleaving properties from both
+        const eventAsModel = calendarAPI.convertEventToModel(event, notionTask)
 
-      // using event and notion page, create hybrid DB model interleaving properties from both
-      const eventAsModel = calendarAPI.convertEventToModel(event, notionTask)
+        await mongoDB.rezap.insertOne(eventAsModel)
 
-      // eventAsModel.save(function (err: any, event: any) {
-      //   if (err) return console.error(err)
-      //   console.log(
-      //     event?.summary + ' saved newly found CalendarEvent to collection.'
-      //   )
-      // })
-      // console.log('event not found in the filteredEvents')
+        // const result eventAsModel.save(function (err: any, event: any) {
+        //   if (err) return console.error(err)
+        //   console.log(
+        //     'saved newly found calendar event to RezapCalendarTask DB.'
+        //   )
+        //   mongoDB.close()
+        // })
+      }
     }
+  } catch (e) {
+    console.log('error', 'Error in main app -> ', e)
+  } finally {
+    mongoDB.close()
+    console.log('info', 'Closing DB connection')
   }
 }
 

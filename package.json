@@ -19,7 +19,7 @@
     "@notionhq/client": "^0.1.9",
     "axios": "^0.21.1",
     "bree": "^6.2.0",
-    "dayjs": "^1.10.5",
+    "dayjs": "^1.10.6",
     "dotenv": "^10.0.0",
     "googleapis": "39",
     "mongodb": "^3.6.9",

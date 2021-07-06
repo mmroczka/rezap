@@ -3,11 +3,12 @@ import logger from 'simple-node-logger'
 import constants from '../constants.config'
 import { connect, connection, model } from 'mongoose'
 import { NotionTask } from '../Models/notionTask'
+import * as dayjs from 'dayjs'
 
 class NotionAPIError extends Error {}
 
 export class NotionAPI {
-  protected notion;
+  protected notion
 
   constructor(public jobName: string = 'No Job Name') {
     // console.log('my log', this.logger)
@@ -32,7 +33,6 @@ export class NotionAPI {
 
   convertTasksToModels(notionTasks: any) {
     connect('mongodb://mongodb:27017/test', { useNewUrlParser: true })
-    console.log('======== TEST ========')
     const db = connection
     db.on('error', console.error.bind(console, 'CONNECTION ERROR'))
 
@@ -171,8 +171,10 @@ export class NotionAPI {
   }
 
   convertCalendarEventToNotionPage(event: any) {
-    const startTime = event.start.dateTime
-    const endTime = event.end.dateTime
+    const startTime = dayjs.default(event.start.dateTime).format()
+    console.log(event.start.dateTime, ' converted to -> ', startTime)
+    const endTime = dayjs.default(event.end.dateTime).format()
+    console.log(event.end.dateTime, ' converted to -> ', endTime)
     const parent = {
       database_id: constants.NOTION_TASKS_DB_ID,
     }
@@ -181,7 +183,7 @@ export class NotionAPI {
         title: [
           {
             text: {
-              content: event.summary,
+              content: 'rezap_test_' + event.summary,
             },
           },
         ],
@@ -210,7 +212,7 @@ export class NotionAPI {
       parent: parent,
       properties: properties,
     }
-    console.log('info', 'successfully converted highlight to Notion page')
+    console.log('info', 'successfully converted calendar event to Notion page')
     return page
   }
 
@@ -224,6 +226,7 @@ export class NotionAPI {
           'issue with creating page in the Notion database'
         )
       }
+      return response
     } catch (e) {
       console.log(
         'error',
