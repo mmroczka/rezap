@@ -1,35 +1,44 @@
-import * as dotenv from 'dotenv'
-// import main_log from 'simple-node-logger'
 import * as path from 'path'
 // import Bree from 'bree'
 import { google } from 'googleapis'
 import * as dayjs from 'dayjs'
 import { Schema, model, connect, connection } from 'mongoose'
-import { Todos } from './Models/todo'
-
-dotenv.config()
+import { RezapCalendarTask } from './Models/rezapItem'
+// dotenv.config()
 
 import { GoogleCalendarAPI } from './APIs/google-calendar-api.js'
 import { NotionAPI } from './APIs/notion-api.js'
-
-// connect('mongodb://mongodb:27017/test', { useNewUrlParser: true })
+import { CalendarEvent } from './Models/calendarEvent'
 
 const main = async () => {
-  // const todos = await Todos.find()
-  const calendarAPI = new GoogleCalendarAPI('main_test')
+
   const notionAPI = new NotionAPI('main_test')
-  // const events = await calendarAPI.getTodaysFilteredCalendarEvents()
-  const notionScheduledTasks = await notionAPI.findAllNotionScheduledEvents()
-  // for (const event of events) {
-  //   console.log(event.summary)
-  //   console.log(event)
-  // }
-  if (notionScheduledTasks) {
-    // for (const task of notionScheduledTasks) {
-    console.log(JSON.stringify(notionScheduledTasks))
-    // const actionItem = task.properties['Action Item']
-    // console.log(actionItem?.title[0].plain_text)
-    // }
+  const calendarAPI = new GoogleCalendarAPI('main_test')
+  const events = await calendarAPI.getNextTwoWeeksOfFilteredEvents()
+
+  for (const event of events) {
+    const calendarEvent = await CalendarEvent.find({ googleCalID: { $eq: event.id } })
+    if (calendarEvent) {
+      // it's already in the DB
+      console.log('found the event! in the DB so no update needed!')
+    } else {
+      // it isn't in the DB, so add it
+      // convert event to Notion Page format
+      const convertedEvent = notionAPI.convertCalendarEventToNotionPage(event)
+      // post page to notion and catch the returned object with ID (we'll need that later)
+      const notionTask = await notionAPI.addPageInDatabase(convertedEvent)
+
+      // using event and notion page, create hybrid DB model interleaving properties from both
+      const eventAsModel = calendarAPI.convertEventToModel(event, notionTask)
+
+      // eventAsModel.save(function (err: any, event: any) {
+      //   if (err) return console.error(err)
+      //   console.log(
+      //     event?.summary + ' saved newly found CalendarEvent to collection.'
+      //   )
+      // })
+      // console.log('event not found in the filteredEvents')
+    }
   }
 }
 

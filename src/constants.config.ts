@@ -1,3 +1,6 @@
+import * as dotenv from 'dotenv'
+dotenv.config()
+
 export default {
   RESCUE_TIME_TOKEN: process.env.RESCUE_TIME_TOKEN ?? '',
   NOTION_KEY: process.env.NOTION_KEY ?? '',
@@ -8,4 +11,4 @@ export default {
   GCAL_CLIENT_SECRET: process.env.GCAL_CLIENT_SECRET ?? '',
   GCAL_REDIRECT_URI: process.env.GCAL_REDIRECT_URI ?? '',
   GCAL_REFRESH_TOKEN: process.env.GCAL_REFRESH_TOKEN ?? '',
-}
+} 

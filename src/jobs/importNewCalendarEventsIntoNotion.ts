@@ -26,7 +26,7 @@ const main = async () => {
       console.log('event not found in Notion! this one is new!')
       const page = notionAPI.convertCalendarEventToNotionPage(event)
       // console.log(page)
-      await notionAPI.createPageInDatabase(page)
+      await notionAPI.addPageInDatabase(page)
     } else {
       console.log('found the event in Notion!')
       // job_logger.log('info', 'highlight already exists!')

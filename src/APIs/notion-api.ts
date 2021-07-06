@@ -7,11 +7,12 @@ import { NotionTask } from '../Models/notionTask'
 class NotionAPIError extends Error {}
 
 export class NotionAPI {
-  protected notion = new Client({ auth: process.env.NOTION_KEY })
+  protected notion;
 
   constructor(public jobName: string = 'No Job Name') {
     // console.log('my log', this.logger)
     // const logger = logger?.createSimpleLogger('logs/notion-api.log')
+    this.notion = new Client({ auth: constants.NOTION_KEY })
     console.log('info', `${jobName}: starting Notion logger`)
   }
 
@@ -93,13 +94,10 @@ export class NotionAPI {
           ],
         },
       })
-
-      // const taskModelList = this.convertTasksToModels(matchingSelectResults)
-
-      // for (const task of matchingSelectResults) {
-      console.log(JSON.stringify(matchingSelectResults))
-      // }
-      return matchingSelectResults
+      if (!matchingSelectResults) {
+        return []
+      }
+      return matchingSelectResults?.results
     } catch (error) {
       console.log('error', `[findNotionScheduledEvents]: ${error}`)
     }
@@ -216,7 +214,7 @@ export class NotionAPI {
     return page
   }
 
-  async createPageInDatabase(page: any) {
+  async addPageInDatabase(page: any) {
     try {
       console.log('info', 'creating page in notion...')
       const response = await this.notion.pages.create(page)
@@ -229,7 +227,7 @@ export class NotionAPI {
     } catch (e) {
       console.log(
         'error',
-        'NotionAPI [createPageInDatabase] error attempting to add to notion database this page: ' +
+        'NotionAPI [addPageInDatabase] error attempting to add to notion database this page: ' +
           page
       )
     }
