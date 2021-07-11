@@ -1,11 +1,7 @@
-import { rezapSchema } from './../Models/rezapItem'
 import * as dotenv from 'dotenv'
-import google_log from 'simple-node-logger'
+import { Logger } from '../utils/Logger'
 import { google } from 'googleapis'
-// import logger from 'simple-node-logger'
-import { CalendarEvent, calendarEventSchema } from '../Models/calendarEvent'
 import { RezapCalendarTask } from '../Models/rezapItem'
-import { connect, connection, model, Mongoose } from 'mongoose'
 import * as dayjs from 'dayjs'
 dotenv.config()
 
@@ -24,13 +20,15 @@ google.options({
 class GoogleCalendarAPIError extends Error {}
 
 export class GoogleCalendarAPI {
-  // protected logger
+  protected logger
   protected google = google
 
   constructor(public jobName: string = 'No Job Name') {
-    // console.log(this)
-    // const logger = logger.createSimpleLogger('logs/google-calendar-api.log')
-    console.log('info', `${jobName}: starting Google Calendar logger`)
+    this.logger = new Logger(
+      './src/logs/google-calendar-api.log',
+      '[GOOGLE CAL API]',
+      jobName
+    )
   }
 
   shouldWeSyncEvent(event: any) {
@@ -41,46 +39,105 @@ export class GoogleCalendarAPI {
     }
   }
 
-  convertEventToModel(event: any, notionTask: any) {
+  convertNotionTaskToCalendarEvent(task: any) {
+    const taskName = task?.properties['Action Item']?.title[0]?.plain_text // title doesn't exist
+    const taskStartTime = task.properties['Do Date']?.date?.start
+    const taskEndTime = task.properties['Do Date']?.date?.end
+
+    const calendarStartTime = dayjs.default(taskStartTime)
+    // default endTime to 30 minutes after start time if end time is not provided
+    let calendarEndTime = dayjs.default(taskStartTime).add(30, 'minute')
+    if (taskEndTime) {
+      calendarEndTime = dayjs.default(taskEndTime)
+    }
+
+    if (!taskName || !calendarStartTime) {
+      throw Error('Error: Notion Page is missing Action Item or a Start Time!')
+    }
+    return {
+      summary: taskName,
+      start: {
+        dateTime: calendarStartTime,
+      },
+      end: {
+        dateTime: calendarEndTime,
+      },
+    }
+  }
+
+  async addTaskToGoogleCalendar(task: any) {
+    try {
+      this.logger.log(
+        `adding task to google calendar: ${JSON.stringify(task, null, 2)}`
+      )
+      const calendar = google.calendar({ version: 'v3' })
+      const response = await calendar.events.insert({
+        calendarId: 'primary',
+        resource: task,
+      })
+      if (!response) {
+        return null
+      }
+      return response.data
+    } catch (e) {
+      this.logger.log(`error: ${e}`)
+    }
+  }
+
+  convertEventToModel(calendarTask: any, notionTask: any) {
     return new RezapCalendarTask({
-      taskName: event.summary,
-      googleCalID: event.id,
+      taskName: calendarTask.summary,
+      googleCalID: calendarTask.id,
       notionPageID: notionTask.id,
       lastRezapUpdate: dayjs.default().format(),
-      priority: notionTask?.properties['Priority']?.select['name'],
-      status: notionTask?.properties['Status']?.select['name'],
-      done: notionTask?.properties['Done']?.checkbox,
-      url: event.htmlLink,
+      priority:
+        notionTask?.properties['Priority']?.select['name'] ?? 'Scheduled 🗓',
+      status: notionTask?.properties['Status']?.select['name'] ?? 'Active',
+      done: notionTask?.properties['Done']?.checkbox ?? false,
+      url: calendarTask.htmlLink,
       start: {
-        startTime: event.start.dateTime,
-        endTime: event.end.dateTime,
+        startTime: calendarTask.start.dateTime,
+        endTime: calendarTask.end.dateTime,
       },
     })
   }
 
-  // convertEventsToModels(events: any) {
-  //   connect('mongodb://mongodb:27017/test', { useNewUrlParser: true })
-  //   console.log('======== TEST ========')
-  //   const db = connection
-  //   db.on('error', console.error.bind(console, 'CONNECTION ERROR'))
-
-  //   let eventList: any = []
-  //   db.once('open', function () {
-  //     console.log('Connection Successful!')
-
-  //     for (const e of events) {
-  //       // a document instance
-  //       // save model to database
-  //       event.save((err: any, event: any) => {
-  //         if (err) return console.error(err)
-  //         console.log(event.summary + ' saved to bookstore collection.')
-  //         console.log(event)
-  //       })
-  //       eventList.push(event)
-  //     }
-  //   })
-  //   return eventList
-  // }
+  async getAllMatchingEventsById(gCalIds: any[]) {
+    try {
+      const calendar = google.calendar({ version: 'v3' })
+      const dayStart = dayjs.default().startOf('day').toISOString()
+      const threeWeeksFromNow = dayjs
+        .default()
+        .add(21, 'days')
+        .endOf('day')
+        .toISOString()
+      const response = await calendar.events.list({
+        calendarId: 'primary',
+        timeMin: dayStart,
+        timeMax: threeWeeksFromNow,
+        maxResults: 200,
+        singleEvents: true,
+        orderBy: 'startTime',
+      })
+      const events = response.data.items
+      let filteredEvents: any[] = []
+      if (events) {
+        filteredEvents = events.filter((e) => e?.id && gCalIds.includes(e.id))
+      }
+      return filteredEvents
+    } catch (error) {
+      this.logger.log(
+        `error: ${
+          this.jobName
+        } GoogleCalendarAPI [getAllMatchingEventsById] error: ${JSON.stringify(
+          error,
+          null,
+          2
+        )}`
+      )
+      return []
+    }
+  }
 
   async getNextTwoWeeksOfFilteredEvents() {
     try {
@@ -109,88 +166,58 @@ export class GoogleCalendarAPI {
       // const eventModelList = this.convertEventsToModels(events)
       return filteredEvents
     } catch (error) {
-      console.log(
-        `${this.jobName} GoogleCalendarAPI [getTodaysCalendarEvents] error: ` +
-          error
+      this.logger.log(
+        `error: ${
+          this.jobName
+        } GoogleCalendarAPI [getTodaysCalendarEvents] error: ${JSON.stringify(
+          error,
+          null,
+          2
+        )}`
       )
       return []
     }
   }
 
-  // async getEventChangesFromNow() {
-  //   try {
-  //     // const calendar = google.calendar({ version: 'v3', oAuth2Client })
-  //     connect('mongodb://mongodb:27017/test', {
-  //       useNewUrlParser: true,
-  //       useUnifiedTopology: true,
-  //     })
-  //     console.log('Connected to Database!')
-  //     const db = connection
-  //     db.on('error', console.error.bind(console, 'CONNECTION ERROR'))
-  //     const calendar = google.calendar({ version: 'v3' })
-  //     const dayStart = dayjs.default().startOf('day').toISOString()
-  //     const twentyDaysFromNow =dayjs
-  //       .default()
-  //       .add(20, 'days')
-  //       .endOf('day')
-  //       .toISOString()
-  //     const response = await calendar.events.list({
-  //       calendarId: 'primary',
-  //       timeMin: dayStart,
-  //       timeMax: twentyDaysFromNow,
-  //       maxResults: 2,
-  //       singleEvents: true,
-  //       orderBy: 'startTime',
-  //     })
-  //     const events = response.data.items
-  //     let filteredEvents: any[] = []
-  //     if (events) {
-  //       filteredEvents = events.filter(
-  //         (e) => e?.summary && !e.summary.startsWith('.')
-  //       )
-  //       filteredEvents = filteredEvents?.map((event) =>
-  //         this.convertEventToModel(event)
-  //       )
+  async patchCalendarProperties(id: string, changes: any) {
+    try {
+      let patch: any = {
+        calendarId: 'primary',
+        eventId: id,
+        resource: {
+          summary: changes.name,
+          start: {
+            dateTime: changes.startTime,
+          },
+          end: {
+            dateTime: changes.endTime,
+          },
+        },
+      }
 
-  //       db.once('open', async function () {
-  //         console.log('Connection Successful!')
-  //       })
-
-  //       const dbEvents: IGoogleCalendarEvent[] = await CalendarEvent.find()
-  //       console.log('DB EVENTS', dbEvents)
-  //       for (const event of filteredEvents) {
-  //         // it's already in the DB
-  //         const calendarEvent = dbEvents.find(
-  //           (e) => e.id === '42aqqflvvs7gtkhltqimir91k4'
-  //         )
-  //         console.log('calendarEvent found? ', calendarEvent)
-  //         if (calendarEvent) {
-  //           // is the converted object different from the new object?
-  //           console.log('found the event!')
-  //         } else {
-  //           // it isn't in the DB, so add it
-  //           const eventAsModel = this.convertEventToModel(event)
-  //           eventAsModel.save(function (err: any, event: any) {
-  //             if (err) return console.error(err)
-  //             console.log(
-  //               event?.summary +
-  //                 ' saved newly found CalendarEvent to collection.'
-  //             )
-  //           })
-  //           console.log('event not found in the filteredEvents')
-  //         }
-  //       }
-  //     }
-  //     // const eventModelList = this.convertEventsToModels(events)
-  //     return filteredEvents
-  //   } catch (error) {
-  //     console.log(
-  //       `${this.jobName} GoogleCalendarAPI [getTodaysCalendarEvents] error: ` +
-  //         error
-  //     )
-  //     return []
-  //   }
-  // }
+      this.logger.log(
+        `\tinfo: updating calendar changes with the following patch:\n ${JSON.stringify(
+          changes,
+          null,
+          2
+        )} `
+      )
+      const calendar = google.calendar({ version: 'v3' })
+      const response = await calendar.events.update(patch)
+      return response.data
+    } catch (error) {
+      this.logger.log(
+        `error: ${
+          this.jobName
+        } GoogleCalendarAPI [patchCalendarProperties] error: ${JSON.stringify(
+          error,
+          null,
+          2
+        )}`
+      )
+      return []
+    }
+  }
 
   async getTodaysFilteredCalendarEvents() {
     // Filters out events that start with a dot on the calendar -> ".downtime blocker"
@@ -200,8 +227,8 @@ export class GoogleCalendarAPI {
 
       // const calendar = google.calendar({ version: 'v3', oAuth2Client })
       const calendar = google.calendar({ version: 'v3' })
-      const dayStart = daysjs.default().startOf('day').toISOString()
-      const dayEnd = daysjs.default().endOf('day').toISOString()
+      const dayStart = dayjs.default().startOf('day').toISOString()
+      const dayEnd = dayjs.default().endOf('day').toISOString()
       const response = await calendar.events.list({
         calendarId: 'primary',
         timeMin: dayStart,
@@ -215,13 +242,11 @@ export class GoogleCalendarAPI {
       if (events) {
         filteredEvents = events.filter((e) => this.shouldWeSyncEvent(e))
       }
-      // const eventModelList = this.convertEventToModel(events)
-      // return eventModelList
       return filteredEvents
     } catch (error) {
-      console.log(
-        `${this.jobName} GoogleCalendarAPI [getTodaysCalendarEvents] error: ` +
-          error
+      this.logger.log(
+        `error: ${this.jobName} GoogleCalendarAPI [getTodaysCalendarEvents] error: ` +
+          JSON.stringify(error, null, 2)
       )
       return []
     }

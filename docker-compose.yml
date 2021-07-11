@@ -1,8 +1,9 @@
 version: '3.4'
 
 services:
-  rezap:
-    image: rezap
+  nodejs_rezap:
+    restart: always
+    image: nodejs_rezap
     build:
       context: .
       dockerfile: ./Dockerfile
@@ -12,9 +13,10 @@ services:
       - 3000:3000
     volumes:
       - .:/usr/src/app
-    links: 
+    links:
       - mongodb
   mongodb:
+    container_name: mongodb
     image: mongo:latest
     ports:
       - 27017:27017
