@@ -105,7 +105,7 @@ export class GoogleCalendarAPI {
   async getAllMatchingEventsById(gCalIds: any[]) {
     try {
       const calendar = google.calendar({ version: 'v3' })
-      const dayStart = dayjs.default().startOf('day').toISOString()
+      const twoWeeksAgo = dayjs.default().subtract(7, 'days').startOf('day').toISOString()
       const threeWeeksFromNow = dayjs
         .default()
         .add(21, 'days')
@@ -113,7 +113,7 @@ export class GoogleCalendarAPI {
         .toISOString()
       const response = await calendar.events.list({
         calendarId: 'primary',
-        timeMin: dayStart,
+        timeMin: twoWeeksAgo,
         timeMax: threeWeeksFromNow,
         maxResults: 200,
         singleEvents: true,
@@ -142,7 +142,7 @@ export class GoogleCalendarAPI {
   async getNextTwoWeeksOfFilteredEvents() {
     try {
       const calendar = google.calendar({ version: 'v3' })
-      const dayStart = dayjs.default().startOf('day').toISOString()
+      const twoWeeksAgo = dayjs.default().subtract(14, 'days').startOf('day').toISOString()
       const fourteenDaysFromNow = dayjs
         .default()
         .add(14, 'days')
@@ -150,7 +150,7 @@ export class GoogleCalendarAPI {
         .toISOString()
       const response = await calendar.events.list({
         calendarId: 'primary',
-        timeMin: dayStart,
+        timeMin: twoWeeksAgo,
         timeMax: fourteenDaysFromNow,
         maxResults: 200,
         singleEvents: true,
