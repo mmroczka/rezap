@@ -102,7 +102,11 @@ const main = async () => {
     logger.log(
       '\n\ninfo: === Reconciling Events from Google Calendar & Notion ==='
     )
-    const today = dayjs.default().startOf('day').format()
+    const twoWeeksAgo = dayjs
+      .default()
+      .subtract(14, 'days')
+      .startOf('day')
+      .format()
     const threeWeeksFromNow = dayjs
       .default()
       .add(21, 'days')
@@ -110,7 +114,7 @@ const main = async () => {
       .format()
     const existingDBItems = await RezapCalendarTask.find({
       'start.startTime': {
-        $gte: today,
+        $gte: twoWeeksAgo,
         $lt: threeWeeksFromNow,
       },
       done: false,
