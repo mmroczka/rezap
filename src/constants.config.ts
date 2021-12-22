@@ -7,8 +7,10 @@ export default {
   NOTION_RESCUE_TIME_HIGHLIGHTS_DB_ID:
     process.env.NOTION_RESCUE_TIME_HIGHLIGHTS_DB_ID ?? '',
   NOTION_TASKS_DB_ID: process.env.NOTION_TASKS_DB_ID ?? '',
+  NOTION_DAY_DB_ID: process.env.NOTION_DAY_DB_ID ?? '',
   GCAL_CLIENT_ID: process.env.GCAL_CLIENT_ID ?? '',
   GCAL_CLIENT_SECRET: process.env.GCAL_CLIENT_SECRET ?? '',
   GCAL_REDIRECT_URI: process.env.GCAL_REDIRECT_URI ?? '',
   GCAL_REFRESH_TOKEN: process.env.GCAL_REFRESH_TOKEN ?? '',
+  OURA_API_TOKEN: process.env.OURA_API_TOKEN ?? '',
 } 
