@@ -12,5 +12,5 @@ export default {
   GCAL_CLIENT_SECRET: process.env.GCAL_CLIENT_SECRET ?? '',
   GCAL_REDIRECT_URI: process.env.GCAL_REDIRECT_URI ?? '',
   GCAL_REFRESH_TOKEN: process.env.GCAL_REFRESH_TOKEN ?? '',
-  OURA_PERSONAL_ACCESS_TOKEN: process.env.OURA_PERSONAL_ACCESS_TOKEN ?? '',
+  OURA_API_TOKEN: process.env.OURA_API_TOKEN ?? '',
 }
