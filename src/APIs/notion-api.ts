@@ -197,11 +197,6 @@ export class NotionAPI {
           },
         }
       )
-      // query({
-      //   database_id: constants.NOTION_DAY_DB_ID,
-      //   filter: queryFilterSelectFilterTypeBased,
-      // })
-      // return matchingSelectResults.results[0] || undefined
     } catch (error) {
       console.log('error', `[findDayPageByDate]: ${error}`)
     }

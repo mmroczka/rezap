@@ -1,5 +1,4 @@
 import * as dotenv from 'dotenv'
-import main_log from 'simple-node-logger'
 import * as path from 'path'
 import Bree from 'bree'
 import { google } from 'googleapis'

@@ -1,17 +1,22 @@
 import axios from 'axios'
-import logger from 'simple-node-logger'
+import { Logger } from '../utils/Logger'
 import * as dotenv from 'dotenv'
 dotenv.config()
 
 class OuraAPIError extends Error {}
 
 export class OuraAPI {
-  protected logger = logger.createSimpleLogger('logs/oura-api.log')
+  protected logger
   protected OURA_BASE_URL = 'https://api.ouraring.com/v1'
   protected OURA_SLEEP_URL = '/sleep'
 
   constructor(public jobName: string = 'No Job Name') {
-    this.logger.log('info', `${jobName}: starting Oura logger`)
+    this.logger = new Logger(
+      './src/logs/oura-api.log',
+      '[OURA API]',
+      jobName
+    )
+    this.logger.log(`Starting OuraAPI instance`)
   }
 
   async getWeeklyOuraStats() {
@@ -29,10 +34,10 @@ export class OuraAPI {
       }
       return resp.data.sleep
     } catch (err) {
-      this.logger.log('error', 'OuraAPI [getCurrentDaysOuraStats]' + err)
+      this.logger.log('OuraAPI [getCurrentDaysOuraStats]' + err)
       return []
     }
   }
 }
 
-export default OuraAPI 
+export default OuraAPI

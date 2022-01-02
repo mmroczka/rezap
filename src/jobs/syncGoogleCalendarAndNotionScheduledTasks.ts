@@ -34,7 +34,7 @@ const main = async () => {
   const notionAPI = new NotionAPI(jobName)
   const calendarAPI = new GoogleCalendarAPI(jobName)
   const mongoDB = await setupDB()
-  const logger = new Logger('./src/logs/main.log', jobName)
+  const logger = new Logger('./src/logs/main.log', 'syncGoogleCalendarAndNotionScheduledTasks', jobName)
 
   try {
     const events = await calendarAPI.getNextTwoWeeksOfFilteredEvents()
@@ -280,7 +280,7 @@ const main = async () => {
         Edge cases to especially consider
         - SYNC: In NOTION, I should sync events I've made, but I shouldn't be able to edit them (Teals meeting or Google Team Matching)
         - CALENDAR SIDE: events that I didn't create should sync 3 weeks out, but ones I DID create should sync only 1 week out
-        - CALENDAR SIDE: should I sync multi-day events? Not sure if this makes sense or not. :/ 
+        - CALENDAR SIDE: should I sync multi-day events? Not sure if this makes sense or not. :/
         - NOTION SIDE: if event has start date but no times associated with it, give don't default to 30 min
       */
   } catch (e) {
