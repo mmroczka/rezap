@@ -22,12 +22,14 @@
     "dayjs": "^1.10.6",
     "dotenv": "^10.0.0",
     "fs": "^0.0.1-security",
-    "googleapis": "39",
+    "googleapis": "^39.2.0",
     "mongodb": "^3.6.9",
     "mongoose": "^5.12.14",
     "node-graceful": "^3.0.1",
+    "nodemailer": "^6.7.3",
     "pino": "^6.12.0",
-    "simple-node-logger": "^18.12.24"
+    "simple-node-logger": "^18.12.24",
+    "twilio": "^3.76.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.14.5",
