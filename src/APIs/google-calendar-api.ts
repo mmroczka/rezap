@@ -44,16 +44,28 @@ export class GoogleCalendarAPI {
     const taskStartTime = task.properties['Do Date']?.date?.start
     const taskEndTime = task.properties['Do Date']?.date?.end
 
-    const calendarStartTime = dayjs.default(taskStartTime)
-    // default endTime to 30 minutes after start time if end time is not provided
-    let calendarEndTime = dayjs.default(taskStartTime).add(30, 'minute')
-    if (taskEndTime) {
-      calendarEndTime = dayjs.default(taskEndTime)
-    }
 
-    if (!taskName || !calendarStartTime) {
+    let calendarStartTime;
+    let calendarEndTime;
+	if (!taskStartTime) {
+		// if there is no start time set then there is no end time either (can't do that in notion)
+		// so default the task to 9am for 30 minutes in length (notice it says 8 in the hour section because it defaults from 0-23)
+		calendarStartTime = dayjs.default().hour(8).minute(0)
+		calendarEndTime = calendarStartTime.hour(8).add(30, 'minute')
+	} else{
+		calendarStartTime = dayjs.default(taskStartTime)
+		// default endTime to 30 minutes after start time if end time is not provided
+		if (taskEndTime) {
+		  calendarEndTime = dayjs.default(taskEndTime)
+		} else {
+			calendarEndTime = dayjs.default(taskStartTime).add(30, 'minute')
+		}
+	}
+
+    if (!taskName) {
       throw Error('Error: Notion Page is missing Action Item or a Start Time!')
     }
+
     return {
       summary: taskName,
       start: {

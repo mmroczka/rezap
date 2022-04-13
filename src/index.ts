@@ -24,13 +24,11 @@ const bree = new Bree({
       name: 'addCurrentDayToNotionDayDB',
       interval: '1h',
     },
-    // runs syncGoogleCalendarAndNotionScheduledTasks on start and then every 1 minute
     {
       path: './dist/jobs/syncGoogleCalendarAndNotionScheduledTasks.js',
       name: 'syncGoogleCalendarAndNotionScheduledTasks',
       interval: '3m',
     },
-    // runs importOuraSleepDataIntoNotion every hour
     {
       path: './dist/jobs/importOuraSleepDataIntoNotion.js',
       name: 'importOuraSleepDataIntoNotion',

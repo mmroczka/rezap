@@ -3,6 +3,7 @@ import { Logger } from '../utils/Logger'
 import constants from '../constants.config'
 import { connect, connection, model } from 'mongoose'
 import * as dayjs from 'dayjs'
+import localizedFormat from 'dayjs/plugin/localizedFormat'
 import { NotionTask } from '../Models/notionTask'
 
 class NotionAPIError extends Error {}
@@ -309,6 +310,9 @@ export class NotionAPI {
   }
 
   convertCurrentDateToNotionDayPage() {
+	let date = dayjs.default(dayjs.default().format('LL')).toISOString()
+    date = date.substr(0, date.indexOf('T'))
+	console.log('date for new notion page is: ' + date)
     const parent = {
       database_id: constants.NOTION_DAY_DB_ID,
     }
@@ -324,7 +328,7 @@ export class NotionAPI {
       },
       Date: {
         date: {
-          start: dayjs.default().toISOString(),
+          start: date,
         },
       },
     }
