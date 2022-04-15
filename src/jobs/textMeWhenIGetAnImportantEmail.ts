@@ -28,11 +28,16 @@ const main = async () => {
   const twilioAPI = new TwilioAPI(jobName)
   const mongoDB = await setupDB()
 
+  console.log('======STARTING textMeWhenIGetAnImportantEmail job ======')
+
   try {
     // get all dedicated coaching emails in inbox
     const dedicatedCoachingEmailList = await gmailAPI.getDedicatedCoachingEmails()
     // if we don't have any then return
-    if (!dedicatedCoachingEmailList) return
+	if (!dedicatedCoachingEmailList) {
+		console.log('no new coaching emails found')
+		return
+	}
 
     // if there are dedicated coaching emails in the inbox, loop through them
     if (dedicatedCoachingEmailList?.length > 0) {
@@ -41,7 +46,10 @@ const main = async () => {
         const curEmailSeen = await RezapEmail.findOne({
           emailID: messageId,
         })
-        if (curEmailSeen) continue
+		if (curEmailSeen){
+			console.log('====== message already seen, ignoring ======', messageId)
+		    continue
+		}
 
         // if we made it this far, it's a new email and we need to add it to mongodb...
         console.log(`Adding message ${messageId} to mongoDB`)
@@ -50,13 +58,17 @@ const main = async () => {
         // ... and alert me via text
         console.log('Sending text message')
         twilioAPI.sendTextMessage('NEW DEDICATED COACHING SESSION AVAILABLE!!', '+18722278274')
+        twilioAPI.callMe()
       }
     } else{
       console.log('No new emails')
     }
   } catch (e) {
-
+	console.log(e)
+  } finally {
+    mongoDB.close()
   }
+  console.log('done running textMeWhenIGetAnImportantEmail')
 }
 
 main()

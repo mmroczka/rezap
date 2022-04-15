@@ -12,7 +12,7 @@ const twilio = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWI
 class TwilioAPIError extends Error {}
 
 export class TwilioAPI {
-  protected twilio 
+  protected twilio
   protected logger
 
   constructor(public jobName: string = 'No Job Name') {
@@ -40,5 +40,22 @@ export class TwilioAPI {
 
       }
   }
+
+  async callMe() {
+      try{
+
+		twilio.calls
+		  .create({
+			 url: 'http://demo.twilio.com/docs/voice.xml',
+			 to: '+18722278274',
+             from: '+19124914714'
+		   })
+		  .then((call: any) => console.log(call.sid));
+
+      } catch(e) {
+
+      }
+  }
+
 
 }
