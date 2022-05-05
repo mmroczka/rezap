@@ -53,12 +53,12 @@ const main = async () => {
 
         // if we made it this far, it's a new email and we need to add it to mongodb...
         console.log(`Adding message ${messageId} to mongoDB`)
-        await mongoDB.rezap.insertOne(new RezapEmail({ emailID: messageId }))
+        // await mongoDB.rezap.insertOne(new RezapEmail({ emailID: messageId }))
 
         // ... and alert me via text
         console.log('Sending text message')
-        twilioAPI.sendTextMessage('NEW DEDICATED COACHING SESSION AVAILABLE!!', '+18722278274')
-        twilioAPI.callMe()
+        // twilioAPI.sendTextMessage('NEW DEDICATED COACHING SESSION AVAILABLE!!', '+18722278274')
+        // twilioAPI.callMe()
       }
     } else{
       console.log('No new emails')

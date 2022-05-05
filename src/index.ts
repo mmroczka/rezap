@@ -10,7 +10,12 @@ const bree = new Bree({
     {
       path: './dist/jobs/textMeWhenIGetAnImportantEmail.js',
       name: 'textMeWhenIGetAnImportantEmail',
-      interval: '1m',
+	  cron: '*/1 07-22 * * *'
+    },
+    {
+      path: './dist/jobs/textMeWhenIGetAnImportantEmailDELAYED30SECONDS.js',
+      name: 'textMeWhenIGetAnImportantEmailDELAYED30SECONDS',
+	  cron: '*/1 07-22 * * *'
     },
     {
       path: './dist/jobs/addCurrentDayToNotionDayDB.js',
