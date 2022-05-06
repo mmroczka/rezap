@@ -3,6 +3,15 @@ import * as dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 dayjs.extend(customParseFormat)
 
+import * as dotenv from 'dotenv'
+import { GoogleGmailAPI } from './APIs/google-gmail-api'
+import { TwilioAPI } from './APIs/twilio-api.js'
+import { Logger } from './utils/Logger'
+import { RezapEmail } from './Models/rezapEmail'
+import { connect, connection } from 'mongoose'
+dotenv.config()
+const jobName: string = '[[Text Me When I Get An Important Email]]'
+
 const bree = new Bree({
   logger: console,
   root: false,
@@ -10,11 +19,6 @@ const bree = new Bree({
     {
       path: './dist/jobs/textMeWhenIGetAnImportantEmail.js',
       name: 'textMeWhenIGetAnImportantEmail',
-	  cron: '*/1 07-22 * * *'
-    },
-    {
-      path: './dist/jobs/textMeWhenIGetAnImportantEmailDELAYED30SECONDS.js',
-      name: 'textMeWhenIGetAnImportantEmailDELAYED30SECONDS',
 	  cron: '*/1 07-22 * * *'
     },
     {
